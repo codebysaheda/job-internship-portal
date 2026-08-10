@@ -1,0 +1,747 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fieldboard — Opportunities Board</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
+
+  :root{
+    --ink: #0A1220;
+    --panel: #111B2E;
+    --panel-raised: #16223A;
+    --line: #263450;
+    --amber: #F5B942;
+    --amber-dim: #8A6A2A;
+    --teal: #34D8C1;
+    --coral: #FF6B5E;
+    --text: #ECEFF6;
+    --text-dim: #8B98B3;
+    --text-faint: #566078;
+    --radius: 4px;
+    --mono: 'IBM Plex Mono', monospace;
+    --display: 'Space Grotesk', sans-serif;
+    --body: 'Inter', sans-serif;
+  }
+
+  *{ box-sizing: border-box; margin:0; padding:0; }
+
+  html{ scroll-behavior: smooth; }
+
+  body{
+    background: var(--ink);
+    color: var(--text);
+    font-family: var(--body);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body::before{
+    content:"";
+    position: fixed; inset:0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px);
+    background-size: 100% 3px;
+    opacity: 0.035;
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  a{ color: inherit; text-decoration: none; }
+  button{ font-family: inherit; cursor: pointer; }
+
+  .wrap{ max-width: 1180px; margin: 0 auto; padding: 0 28px; }
+
+  /* ---------- Header ---------- */
+  header{
+    border-bottom: 1px solid var(--line);
+    position: sticky; top:0; z-index: 100;
+    background: rgba(10,18,32,0.92);
+    backdrop-filter: blur(8px);
+  }
+  .header-inner{
+    display:flex; align-items:center; justify-content: space-between;
+    padding: 18px 28px;
+    max-width: 1180px; margin: 0 auto;
+  }
+  .logo{
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: 20px;
+    letter-spacing: 0.02em;
+    display:flex; align-items:center; gap:10px;
+  }
+  .logo .dot{
+    width:8px; height:8px; border-radius:50%;
+    background: var(--teal);
+    box-shadow: 0 0 8px var(--teal);
+    animation: blink 2.4s infinite;
+  }
+  @keyframes blink{ 0%,100%{opacity:1;} 50%{opacity:0.25;} }
+
+  nav{ display:flex; gap: 28px; align-items:center; }
+  nav a{
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+    transition: color 0.15s;
+  }
+  nav a:hover{ color: var(--amber); }
+  .post-btn{
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    border: 1px solid var(--amber-dim);
+    color: var(--amber);
+    background: transparent;
+    padding: 9px 16px;
+    border-radius: var(--radius);
+    transition: all 0.15s;
+  }
+  .post-btn:hover{ background: var(--amber); color: var(--ink); border-color: var(--amber); }
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding: 76px 0 48px;
+    border-bottom: 1px solid var(--line);
+  }
+  .eyebrow{
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--teal);
+    margin-bottom: 22px;
+    display:flex; align-items:center; gap:10px;
+  }
+  .eyebrow::before{
+    content:"";
+    width: 20px; height:1px;
+    background: var(--teal);
+  }
+
+  .split-flap{
+    font-family: var(--display);
+    font-weight: 700;
+    font-size: clamp(34px, 5.4vw, 64px);
+    line-height: 1.04;
+    letter-spacing: -0.01em;
+    max-width: 780px;
+  }
+  .split-flap .flip-char{
+    display:inline-block;
+    color: var(--text);
+  }
+  .split-flap .flip-char.amber{ color: var(--amber); }
+
+  .hero-sub{
+    margin-top: 22px;
+    max-width: 540px;
+    color: var(--text-dim);
+    font-size: 16px;
+  }
+
+  .board-stats{
+    display:flex; gap: 36px;
+    margin-top: 40px;
+    font-family: var(--mono);
+    flex-wrap: wrap;
+  }
+  .stat .num{ font-size: 26px; color: var(--amber); font-weight: 600; }
+  .stat .label{ font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; margin-top: 4px; }
+
+  /* ---------- Search / Filters ---------- */
+  .console{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    margin-top: 44px;
+    padding: 4px;
+    display:flex;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .console input[type="text"]{
+    flex: 2 1 240px;
+    background: var(--panel-raised);
+    border: 1px solid transparent;
+    color: var(--text);
+    font-family: var(--body);
+    font-size: 14px;
+    padding: 14px 16px;
+    border-radius: 2px;
+    outline: none;
+  }
+  .console input[type="text"]::placeholder{ color: var(--text-faint, #566078); }
+  .console input[type="text"]:focus{ border-color: var(--teal); }
+
+  .console select{
+    flex: 1 1 140px;
+    background: var(--panel-raised);
+    border: 1px solid transparent;
+    color: var(--text-dim);
+    font-family: var(--mono);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 14px 12px;
+    border-radius: 2px;
+    outline: none;
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='6'><path d='M0 0L5 6L10 0' fill='%238B98B3'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+  }
+  .console select:focus{ border-color: var(--teal); color: var(--text); }
+
+  /* ---------- Board ---------- */
+  .board-section{ padding: 56px 0 90px; }
+  .board-head{
+    display:flex; justify-content: space-between; align-items: baseline;
+    margin-bottom: 18px;
+    flex-wrap: wrap; gap: 10px;
+  }
+  .board-head h2{
+    font-family: var(--display);
+    font-size: 20px;
+    font-weight: 600;
+  }
+  .board-count{
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--text-dim);
+  }
+
+  .board{
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .board-row{
+    display:grid;
+    grid-template-columns: 2.2fr 1.6fr 0.9fr 1.1fr 0.9fr 1fr 1.1fr;
+    gap: 14px;
+    align-items: center;
+    padding: 18px 20px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .board-row:last-child{ border-bottom: none; }
+  .board-row:hover{ background: var(--panel-raised); }
+  .board-row.header-row{
+    background: var(--ink);
+    cursor: default;
+    padding: 12px 20px;
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-dim);
+  }
+  .board-row.header-row:hover{ background: var(--ink); }
+
+  .col-role{ display:flex; flex-direction: column; gap: 3px; min-width:0; }
+  .col-role .r-title{
+    font-family: var(--display); font-weight: 600; font-size: 15px;
+    white-space: nowrap; overflow:hidden; text-overflow: ellipsis;
+  }
+  .col-role .r-company{ font-size: 12.5px; color: var(--text-dim); }
+
+  .col-track{
+    font-family: var(--mono); font-size: 11px; color: var(--text-dim);
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .col-type{
+    font-family: var(--mono); font-size: 11px;
+    text-transform: uppercase; letter-spacing: 0.04em;
+  }
+  .type-internship{ color: var(--teal); }
+  .type-fulltime{ color: var(--amber); }
+
+  .col-location{ font-size: 13px; color: var(--text-dim); }
+  .col-stipend{ font-family: var(--mono); font-size: 12.5px; color: var(--text); }
+
+  .col-deadline{ font-family: var(--mono); font-size: 12px; color: var(--text-dim); }
+
+  .status-badge{
+    font-family: var(--mono);
+    font-size: 10.5px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 5px 9px;
+    border-radius: 2px;
+    display:inline-flex; align-items:center; gap: 6px;
+    justify-self: start;
+    white-space: nowrap;
+  }
+  .status-badge .led{ width:6px; height:6px; border-radius:50%; }
+  .status-open{ color: var(--teal); background: rgba(52,216,193,0.09); }
+  .status-open .led{ background: var(--teal); box-shadow: 0 0 6px var(--teal); }
+  .status-closing{ color: var(--coral); background: rgba(255,107,94,0.09); }
+  .status-closing .led{ background: var(--coral); animation: blink 1.1s infinite; }
+  .status-filled{ color: var(--text-dim); background: rgba(139,152,179,0.08); }
+  .status-filled .led{ background: var(--text-dim); }
+
+  .empty-state{
+    padding: 70px 20px;
+    text-align: center;
+    color: var(--text-dim);
+  }
+  .empty-state .glyph{
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--coral); margin-bottom: 10px;
+  }
+  .empty-state p{ font-size: 14px; max-width: 380px; margin: 0 auto; }
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{
+    position: fixed; inset:0; background: rgba(6,10,18,0.72);
+    display:none; align-items: center; justify-content: center;
+    z-index: 500; padding: 24px;
+    backdrop-filter: blur(3px);
+  }
+  .modal-overlay.active{ display:flex; }
+  .modal{
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    max-width: 560px; width:100%;
+    max-height: 86vh; overflow-y: auto;
+    padding: 32px;
+    position: relative;
+  }
+  .modal-close{
+    position: absolute; top: 20px; right: 20px;
+    background: none; border: none; color: var(--text-dim);
+    font-size: 20px; line-height:1; padding: 4px 8px;
+  }
+  .modal-close:hover{ color: var(--text); }
+  .modal .m-eyebrow{
+    font-family: var(--mono); font-size: 11px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--teal); margin-bottom: 10px;
+  }
+  .modal h3{ font-family: var(--display); font-size: 24px; font-weight: 700; margin-bottom: 4px; }
+  .modal .m-company{ color: var(--text-dim); font-size: 14px; margin-bottom: 20px; }
+
+  .m-meta{
+    display:grid; grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    background: var(--panel-raised);
+    border: 1px solid var(--line);
+    border-radius: 2px;
+    padding: 16px;
+    margin-bottom: 22px;
+  }
+  .m-meta div .k{ font-family: var(--mono); font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-dim); margin-bottom: 4px; }
+  .m-meta div .v{ font-size: 13.5px; }
+
+  .modal .m-section{ margin-bottom: 20px; }
+  .modal .m-section h4{
+    font-family: var(--mono); font-size: 11px; text-transform: uppercase;
+    letter-spacing: 0.08em; color: var(--amber); margin-bottom: 8px;
+  }
+  .modal .m-section p{ font-size: 14px; color: var(--text-dim); }
+  .modal .m-section ul{ padding-left: 18px; }
+  .modal .m-section li{ font-size: 14px; color: var(--text-dim); margin-bottom: 6px; }
+
+  .apply-btn{
+    width:100%;
+    background: var(--amber);
+    color: var(--ink);
+    border: none;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    padding: 15px;
+    border-radius: 3px;
+    margin-top: 6px;
+    transition: transform 0.1s, background 0.15s;
+  }
+  .apply-btn:hover{ background: #FFC85C; }
+  .apply-btn:active{ transform: scale(0.99); }
+  .apply-btn.applied{
+    background: var(--panel-raised);
+    color: var(--teal);
+    border: 1px solid var(--teal);
+    cursor: default;
+  }
+  .apply-btn.applied:hover{ background: var(--panel-raised); }
+
+  /* ---------- Footer ---------- */
+  footer{
+    border-top: 1px solid var(--line);
+    padding: 30px 0;
+  }
+  .footer-inner{
+    display:flex; justify-content: space-between; align-items:center;
+    flex-wrap: wrap; gap: 12px;
+  }
+  .footer-inner .f-left{ font-family: var(--mono); font-size: 11px; color: var(--text-dim); }
+  .footer-inner .f-right{ display:flex; gap: 20px; }
+  .footer-inner .f-right a{ font-family: var(--mono); font-size: 11px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; }
+  .footer-inner .f-right a:hover{ color: var(--amber); }
+
+  /* ---------- Responsive ---------- */
+  @media (max-width: 880px){
+    .board-row{
+      grid-template-columns: 1fr;
+      gap: 8px;
+      align-items: start;
+    }
+    .board-row.header-row{ display:none; }
+    .col-role{ margin-bottom: 4px; }
+    .col-track::before{ content: "Track — "; color: var(--text-faint); }
+    .col-type::before{ content: "Type — "; color: var(--text-dim); }
+    .col-location::before{ content: "Location — "; color: var(--text-faint); font-family: var(--mono); font-size: 10px; text-transform: uppercase; }
+    .col-stipend::before{ content: "Stipend — "; color: var(--text-dim); font-family: var(--mono); }
+    .col-deadline::before{ content: "Closes — "; color: var(--text-faint); }
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation: none !important; transition: none !important; }
+  }
+
+  :focus-visible{ outline: 2px solid var(--teal); outline-offset: 2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <div class="logo"><span class="dot"></span>FIELDBOARD</div>
+    <nav>
+      <a href="#board">Board</a>
+      <a href="#" id="nav-post">For employers</a>
+      <button class="post-btn" id="post-role-btn">Post a role</button>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <div class="eyebrow">Live opportunities board</div>
+    <h1 class="split-flap" id="split-flap-title"></h1>
+    <p class="hero-sub">Internships and entry-level roles, updated as companies open and close them. No noise, no recycled listings — every row on the board is currently accepting applications or closing soon.</p>
+
+    <div class="board-stats">
+      <div class="stat"><div class="num" id="stat-open">--</div><div class="label">Open now</div></div>
+      <div class="stat"><div class="num" id="stat-companies">--</div><div class="label">Companies</div></div>
+      <div class="stat"><div class="num" id="stat-closing">--</div><div class="label">Closing this week</div></div>
+    </div>
+
+    <div class="console">
+      <input type="text" id="search-input" placeholder="Search by role, company, or skill…" autocomplete="off">
+      <select id="filter-type">
+        <option value="">All types</option>
+        <option value="Internship">Internship</option>
+        <option value="Full-time">Full-time</option>
+      </select>
+      <select id="filter-track">
+        <option value="">All tracks</option>
+      </select>
+      <select id="filter-location">
+        <option value="">All locations</option>
+      </select>
+    </div>
+  </div>
+</section>
+
+<section class="board-section" id="board">
+  <div class="wrap">
+    <div class="board-head">
+      <h2>Open positions</h2>
+      <div class="board-count" id="board-count">— listings</div>
+    </div>
+    <div class="board" id="board-list"></div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div class="f-left">FIELDBOARD — A DEMO OPPORTUNITIES BOARD. LISTINGS ARE ILLUSTRATIVE.</div>
+    <div class="f-right">
+      <a href="#board">Board</a>
+      <a href="#" id="footer-post">For employers</a>
+    </div>
+  </div>
+</footer>
+
+<div class="modal-overlay" id="modal-overlay">
+  <div class="modal" id="modal">
+    <button class="modal-close" id="modal-close" aria-label="Close">×</button>
+    <div class="m-eyebrow" id="m-track"></div>
+    <h3 id="m-title"></h3>
+    <div class="m-company" id="m-company"></div>
+
+    <div class="m-meta">
+      <div><div class="k">Type</div><div class="v" id="m-type"></div></div>
+      <div><div class="k">Location</div><div class="v" id="m-location"></div></div>
+      <div><div class="k">Stipend / Salary</div><div class="v" id="m-stipend"></div></div>
+      <div><div class="k">Closes</div><div class="v" id="m-deadline"></div></div>
+    </div>
+
+    <div class="m-section">
+      <h4>About the role</h4>
+      <p id="m-desc"></p>
+    </div>
+
+    <div class="m-section">
+      <h4>What you'll need</h4>
+      <ul id="m-reqs"></ul>
+    </div>
+
+    <button class="apply-btn" id="apply-btn">Apply now</button>
+  </div>
+</div>
+
+<script>
+(function(){
+  const listings = [
+    { id:1, title:"Software Engineering Intern", company:"Northline Systems", track:"Engineering", type:"Internship", location:"Bengaluru · Hybrid", stipend:"₹35,000/mo", deadline:"18 Aug 2026", status:"open",
+      desc:"Join the platform team building internal developer tooling. You'll ship real features to a Django/React codebase used by 40+ engineers, with a mentor guiding your first PRs.",
+      reqs:["Comfortable with Python or JavaScript fundamentals","Coursework or projects involving web apps or APIs","Available for a 10–12 week term"] },
+    { id:2, title:"Frontend Engineer Intern", company:"Loom & Co.", track:"Engineering", type:"Internship", location:"Remote (India)", stipend:"₹28,000/mo", deadline:"14 Aug 2026", status:"closing",
+      desc:"Work with the design systems team to build accessible, reusable React components used across the company's consumer products.",
+      reqs:["Solid HTML/CSS and JavaScript","Some exposure to React or a similar framework","An eye for detail in UI polish"] },
+    { id:3, title:"Backend Developer", company:"Havelock Data", track:"Engineering", type:"Full-time", location:"Hyderabad · On-site", stipend:"₹9–12 LPA", deadline:"25 Aug 2026", status:"open",
+      desc:"Design and maintain APIs powering a logistics platform processing millions of events daily. You'll own services end-to-end, from schema to deployment.",
+      reqs:["1+ years experience or strong internship history","Proficiency in Python, Go, or Java","Understanding of relational databases"] },
+    { id:4, title:"Data Analyst Intern", company:"Meridian Retail", track:"Data", type:"Internship", location:"Pune · Hybrid", stipend:"₹22,000/mo", deadline:"20 Aug 2026", status:"open",
+      desc:"Support the merchandising team with dashboards and ad-hoc analysis that inform inventory decisions across 60 stores.",
+      reqs:["Comfort with SQL and spreadsheets","Basic statistics coursework","Curiosity about retail operations"] },
+    { id:5, title:"Machine Learning Intern", company:"Arcform Labs", track:"Engineering", type:"Internship", location:"Remote (India)", stipend:"₹40,000/mo", deadline:"12 Aug 2026", status:"closing",
+      desc:"Help build and evaluate models for a document-understanding product. You'll work directly with the two founding engineers.",
+      reqs:["Python and familiarity with PyTorch or TensorFlow","Understanding of core ML concepts","A portfolio project or Kaggle experience is a plus"] },
+    { id:6, title:"Product Design Intern", company:"Northline Systems", track:"Design", type:"Internship", location:"Bengaluru · On-site", stipend:"₹30,000/mo", deadline:"22 Aug 2026", status:"open",
+      desc:"Partner with product managers and engineers to design flows for a B2B analytics dashboard, from wireframes through to shipped UI.",
+      reqs:["A portfolio showing UI/UX work (student projects welcome)","Familiarity with Figma","Ability to explain design decisions clearly"] },
+    { id:7, title:"QA Engineer", company:"Havelock Data", track:"Engineering", type:"Full-time", location:"Hyderabad · On-site", stipend:"₹6–8 LPA", deadline:"30 Aug 2026", status:"open",
+      desc:"Build and maintain automated test suites for a high-throughput logistics platform, and work closely with engineers to raise release quality.",
+      reqs:["Experience with a testing framework (pytest, Selenium, etc.)","Understanding of CI/CD pipelines","Strong attention to detail"] },
+    { id:8, title:"Marketing Intern", company:"Loom & Co.", track:"Marketing", type:"Internship", location:"Remote (India)", stipend:"₹15,000/mo", deadline:"16 Aug 2026", status:"closing",
+      desc:"Support campaign planning and content creation for product launches, working alongside a small, fast-moving growth team.",
+      reqs:["Strong writing skills","Interest in consumer products","Familiarity with basic analytics tools is a plus"] },
+    { id:9, title:"Cloud Infrastructure Intern", company:"Arcform Labs", track:"Engineering", type:"Internship", location:"Bengaluru · Hybrid", stipend:"₹32,000/mo", deadline:"05 Aug 2026", status:"filled",
+      desc:"Assist the infra team in migrating services to Kubernetes and improving deployment reliability.",
+      reqs:["Basic Linux and networking knowledge","Exposure to Docker or containers","Interest in DevOps practices"] },
+    { id:10, title:"Graduate Software Engineer", company:"Meridian Retail", track:"Engineering", type:"Full-time", location:"Pune · On-site", stipend:"₹8–10 LPA", deadline:"28 Aug 2026", status:"open",
+      desc:"Join the engineering team building the platform behind Meridian's e-commerce and in-store systems, with structured mentorship in your first six months.",
+      reqs:["B.Tech/B.E. in CS or related field, graduating 2026 or 2027","Strong fundamentals in data structures and algorithms","Any full-stack project experience"] },
+  ];
+
+  const boardList = document.getElementById('board-list');
+  const searchInput = document.getElementById('search-input');
+  const filterType = document.getElementById('filter-type');
+  const filterTrack = document.getElementById('filter-track');
+  const filterLocation = document.getElementById('filter-location');
+  const boardCount = document.getElementById('board-count');
+
+  // populate track & location filters
+  const tracks = [...new Set(listings.map(l => l.track))].sort();
+  tracks.forEach(t => {
+    const opt = document.createElement('option');
+    opt.value = t; opt.textContent = t;
+    filterTrack.appendChild(opt);
+  });
+  const locations = [...new Set(listings.map(l => l.location.split(' · ')[0]))].sort();
+  locations.forEach(loc => {
+    const opt = document.createElement('option');
+    opt.value = loc; opt.textContent = loc;
+    filterLocation.appendChild(opt);
+  });
+
+  function statusLabel(s){
+    if(s === 'open') return 'Open';
+    if(s === 'closing') return 'Closing soon';
+    return 'Filled';
+  }
+
+  function renderRow(l){
+    const row = document.createElement('div');
+    row.className = 'board-row';
+    row.setAttribute('role','button');
+    row.setAttribute('tabindex','0');
+    row.innerHTML = `
+      <div class="col-role">
+        <div class="r-title">${l.title}</div>
+        <div class="r-company">${l.company}</div>
+      </div>
+      <div class="col-track">${l.track}</div>
+      <div class="col-type ${l.type === 'Internship' ? 'type-internship' : 'type-fulltime'}">${l.type}</div>
+      <div class="col-location">${l.location}</div>
+      <div class="col-stipend">${l.stipend}</div>
+      <div class="col-deadline">${l.deadline}</div>
+      <div class="status-badge status-${l.status}"><span class="led"></span>${statusLabel(l.status)}</div>
+    `;
+    row.addEventListener('click', () => openModal(l));
+    row.addEventListener('keypress', (e) => { if(e.key === 'Enter') openModal(l); });
+    return row;
+  }
+
+  function renderBoard(){
+    const q = searchInput.value.trim().toLowerCase();
+    const type = filterType.value;
+    const track = filterTrack.value;
+    const loc = filterLocation.value;
+
+    const filtered = listings.filter(l => {
+      const matchesQ = !q || (l.title + ' ' + l.company + ' ' + l.track).toLowerCase().includes(q);
+      const matchesType = !type || l.type === type;
+      const matchesTrack = !track || l.track === track;
+      const matchesLoc = !loc || l.location.startsWith(loc);
+      return matchesQ && matchesType && matchesTrack && matchesLoc;
+    });
+
+    boardList.innerHTML = '';
+    const header = document.createElement('div');
+    header.className = 'board-row header-row';
+    header.innerHTML = `
+      <div>Role</div><div>Track</div><div>Type</div><div>Location</div><div>Stipend</div><div>Closes</div><div>Status</div>
+    `;
+    boardList.appendChild(header);
+
+    if(filtered.length === 0){
+      const empty = document.createElement('div');
+      empty.className = 'empty-state';
+      empty.innerHTML = `<div class="glyph">No matches on the board</div><p>Try clearing a filter or searching a broader term — new roles are added regularly.</p>`;
+      boardList.appendChild(empty);
+    } else {
+      filtered.forEach(l => boardList.appendChild(renderRow(l)));
+    }
+
+    boardCount.textContent = `${filtered.length} listing${filtered.length === 1 ? '' : 's'}`;
+  }
+
+  [searchInput, filterType, filterTrack, filterLocation].forEach(el => {
+    el.addEventListener('input', renderBoard);
+    el.addEventListener('change', renderBoard);
+  });
+
+  // stats
+  document.getElementById('stat-open').textContent = listings.filter(l => l.status !== 'filled').length;
+  document.getElementById('stat-companies').textContent = new Set(listings.map(l => l.company)).size;
+  document.getElementById('stat-closing').textContent = listings.filter(l => l.status === 'closing').length;
+
+  // ---- modal ----
+  const overlay = document.getElementById('modal-overlay');
+  const applyBtn = document.getElementById('apply-btn');
+  let appliedIds = new Set();
+
+  function openModal(l){
+    document.getElementById('m-track').textContent = l.track;
+    document.getElementById('m-title').textContent = l.title;
+    document.getElementById('m-company').textContent = l.company;
+    document.getElementById('m-type').textContent = l.type;
+    document.getElementById('m-location').textContent = l.location;
+    document.getElementById('m-stipend').textContent = l.stipend;
+    document.getElementById('m-deadline').textContent = l.deadline;
+    document.getElementById('m-desc').textContent = l.desc;
+    const reqsEl = document.getElementById('m-reqs');
+    reqsEl.innerHTML = '';
+    l.reqs.forEach(r => {
+      const li = document.createElement('li');
+      li.textContent = r;
+      reqsEl.appendChild(li);
+    });
+
+    applyBtn.dataset.id = l.id;
+    if(appliedIds.has(l.id)){
+      applyBtn.textContent = 'Application submitted ✓';
+      applyBtn.classList.add('applied');
+    } else if(l.status === 'filled'){
+      applyBtn.textContent = 'Position filled';
+      applyBtn.classList.add('applied');
+    } else {
+      applyBtn.textContent = 'Apply now';
+      applyBtn.classList.remove('applied');
+    }
+
+    overlay.classList.add('active');
+  }
+
+  function closeModal(){ overlay.classList.remove('active'); }
+
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  overlay.addEventListener('click', (e) => { if(e.target === overlay) closeModal(); });
+  document.addEventListener('keydown', (e) => { if(e.key === 'Escape') closeModal(); });
+
+  applyBtn.addEventListener('click', () => {
+    const id = Number(applyBtn.dataset.id);
+    const listing = listings.find(l => l.id === id);
+    if(!listing || listing.status === 'filled' || appliedIds.has(id)) return;
+    appliedIds.add(id);
+    applyBtn.textContent = 'Application submitted ✓';
+    applyBtn.classList.add('applied');
+  });
+
+  document.getElementById('post-role-btn').addEventListener('click', () => {
+    alert('Employer posting is not part of this demo board.');
+  });
+  document.getElementById('nav-post').addEventListener('click', (e) => e.preventDefault());
+  document.getElementById('footer-post').addEventListener('click', (e) => e.preventDefault());
+
+  // ---- split-flap headline effect ----
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ ";
+  const finalText = "YOUR NEXT ROLE IS BOARDING.";
+  const amberWords = ["BOARDING."];
+  const titleEl = document.getElementById('split-flap-title');
+
+  function buildSpans(){
+    titleEl.innerHTML = '';
+    finalText.split('').forEach((ch) => {
+      const span = document.createElement('span');
+      span.className = 'flip-char';
+      span.textContent = ch === ' ' ? '\u00A0' : ch;
+      titleEl.appendChild(span);
+    });
+  }
+  buildSpans();
+  const spans = titleEl.querySelectorAll('.flip-char');
+
+  function isAmber(index){
+    let count = 0;
+    for(const word of finalText.split(' ')){
+      const start = count;
+      const end = count + word.length;
+      if(amberWords.includes(word) && index >= start && index < end) return true;
+      count = end + 1;
+    }
+    return false;
+  }
+
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches){
+    spans.forEach((s, i) => { if(isAmber(i)) s.classList.add('amber'); });
+  } else {
+    spans.forEach((s, i) => {
+      const target = finalText[i];
+      if(target === ' '){ return; }
+      let ticks = 6 + Math.floor(Math.random() * 10);
+      let count = 0;
+      const interval = setInterval(() => {
+        if(count >= ticks){
+          s.textContent = target;
+          if(isAmber(i)) s.classList.add('amber');
+          clearInterval(interval);
+        } else {
+          s.textContent = chars[Math.floor(Math.random() * chars.length)];
+          count++;
+        }
+      }, 35 + i * 2);
+    });
+  }
+
+  renderBoard();
+})();
+</script>
+
+</body>
+</html>
