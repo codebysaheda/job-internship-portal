@@ -4,7 +4,7 @@ A modern and responsive Job & Internship Portal designed to help students, fresh
 
 🌐 Live Demo
 
-🔗 "View Live Website" (YOUR_LIVE_DEMO_LINK)
+🔗 "View Live Website" (https://job-internship-portal-iqw7ckgmn-sahedashaik9-7845s-projects.vercel.app)
 
 📌 Overview
 
